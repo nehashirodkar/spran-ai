@@ -558,8 +558,15 @@ if submitted:
         st.success("Sourcing request processed successfully.")
         st.caption("AI extraction unavailable: using rule-based fallback.")
 
-    with st.expander("View generated spec", expanded=True):
-        st.json(spec)
+    st.markdown("### ✨ AI Generated Output")
+    
+    st.write("**Features:**", ", ".join(spec.get("features", [])))
+    st.write("**Recommended Materials:**", ", ".join(spec.get("recommended_materials", [])))
+    
+    if spec.get("manufacturing_notes"):
+        st.write("**Notes:**")
+        for note in spec["manufacturing_notes"]:
+            st.write("-", note)
 
     st.markdown('<div class="section-title">Structured sourcing brief</div>', unsafe_allow_html=True)
 
