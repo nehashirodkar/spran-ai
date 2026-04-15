@@ -1,8 +1,10 @@
 import json
+import os
 from typing import Any, Dict, List
 
 import pandas as pd
 import streamlit as st
+from openai import OpenAI
 
 st.set_page_config(page_title="SpranAI", page_icon="✨", layout="wide")
 
@@ -182,6 +184,12 @@ def load_suppliers() -> List[Dict[str, Any]]:
         return json.load(f)
 
 
+def get_openai_api_key() -> str:
+    if "OPENAI_API_KEY" in st.secrets:
+        return st.secrets["OPENAI_API_KEY"]
+    return os.getenv("OPENAI_API_KEY", "")
+
+
 def rule_based_spec(
     product_name: str,
     category: str,
@@ -234,6 +242,96 @@ def rule_based_spec(
         "recommended_materials": recommended_materials,
         "manufacturing_notes": manufacturing_notes,
     }
+
+
+def ai_generate_spec(
+    product_name: str,
+    category: str,
+    description: str,
+    quantity: int,
+    target_price: float,
+    material: str,
+) -> Dict[str, Any]:
+    api_key = get_openai_api_key()
+
+    if not api_key:
+        return rule_based_spec(
+            product_name=product_name,
+            category=category,
+            description=description,
+            quantity=quantity,
+            target_price=target_price,
+            material=material,
+        )
+
+    try:
+        client = OpenAI(api_key=api_key)
+
+        prompt = f"""
+You are an AI sourcing assistant.
+
+Convert the following product request into a structured sourcing brief.
+
+Return ONLY valid JSON with exactly these keys:
+product_name, category, description, quantity, target_price, material, features, recommended_materials, manufacturing_notes
+
+Rules:
+- "features" must be a JSON array of short strings
+- "recommended_materials" must be a JSON array of short strings
+- "manufacturing_notes" must be a JSON array of short strings
+- Keep the output practical for manufacturing/sourcing
+- Do not include markdown
+- Do not include any explanation outside JSON
+
+User input:
+Product Name: {product_name}
+Category: {category}
+Description: {description}
+Quantity: {quantity}
+Target Price: {target_price}
+Preferred Material: {material}
+"""
+
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            temperature=0.2,
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a precise sourcing and manufacturing assistant that outputs strict JSON only."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+        )
+
+        content = response.choices[0].message.content
+        parsed = json.loads(content)
+
+        parsed["product_name"] = parsed.get("product_name", product_name)
+        parsed["category"] = str(parsed.get("category", category)).lower().strip()
+        parsed["description"] = parsed.get("description", description)
+        parsed["quantity"] = int(parsed.get("quantity", quantity))
+        parsed["target_price"] = float(parsed.get("target_price", target_price))
+        parsed["material"] = str(parsed.get("material", material)).lower().strip() if parsed.get("material") else ""
+        parsed["features"] = parsed.get("features", [])
+        parsed["recommended_materials"] = parsed.get("recommended_materials", [])
+        parsed["manufacturing_notes"] = parsed.get("manufacturing_notes", [])
+
+        return parsed
+
+    except Exception:
+        return rule_based_spec(
+            product_name=product_name,
+            category=category,
+            description=description,
+            quantity=quantity,
+            target_price=target_price,
+            material=material,
+        )
 
 
 def filter_suppliers(spec: Dict[str, Any], suppliers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -378,6 +476,7 @@ def build_comparison_df(ranked: List[Dict[str, Any]]) -> pd.DataFrame:
 with st.sidebar:
     st.title("SpranAI")
     st.write("Mini AI sourcing copilot for structured product briefs and manufacturer discovery.")
+    st.write("LLM-assisted spec generation with deterministic ranking logic.")
     st.markdown("### Workflow")
     st.write("1. Enter product requirements")
     st.write("2. Generate sourcing brief")
@@ -396,7 +495,7 @@ st.markdown("""
     <div class="mini-chip-row">
         <div class="mini-chip">10 manufacturers</div>
         <div class="mini-chip">4 recommendation modes</div>
-        <div class="mini-chip">Decision support MVP</div>
+        <div class="mini-chip">AI-assisted brief generation</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -424,20 +523,26 @@ with st.form("product_form"):
     submitted = st.form_submit_button("Find manufacturers")
 
 if submitted:
-    spec = rule_based_spec(
-        product_name=product_name,
-        category=category,
-        description=description,
-        quantity=int(quantity),
-        target_price=float(target_price),
-        material=material,
-    )
+    with st.spinner("Generating AI-powered sourcing brief..."):
+        spec = ai_generate_spec(
+            product_name=product_name,
+            category=category,
+            description=description,
+            quantity=int(quantity),
+            target_price=float(target_price),
+            material=material,
+        )
 
     suppliers = load_suppliers()
     filtered = filter_suppliers(spec, suppliers)
     ranked = enrich_and_rank(spec, filtered)
 
     st.success("Sourcing request processed successfully.")
+
+    if get_openai_api_key():
+        st.caption("AI extraction enabled: sourcing brief generated with an LLM.")
+    else:
+        st.caption("AI extraction unavailable: using rule-based fallback.")
 
     st.markdown('<div class="section-title">Structured sourcing brief</div>', unsafe_allow_html=True)
 
@@ -462,7 +567,7 @@ if submitted:
             <div class="result-meta">
                 <b>Preferred Material:</b> {spec['material'] or 'Not specified'}<br>
                 <b>Detected Features:</b> {', '.join(spec['features']) if spec['features'] else 'None detected'}<br>
-                <b>Recommended Materials:</b> {', '.join(spec['recommended_materials'])}
+                <b>Recommended Materials:</b> {', '.join(spec['recommended_materials']) if spec['recommended_materials'] else 'None suggested'}
             </div>
         </div>
         """, unsafe_allow_html=True)
