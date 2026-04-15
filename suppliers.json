@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Vietnam Apparel Co",
+    "category": "apparel",
+    "materials": ["cotton", "polyester", "fleece"],
+    "min_order_qty": 200,
+    "max_order_qty": 10000,
+    "unit_price": 9.5,
+    "lead_time_days": 20,
+    "country": "Vietnam",
+    "quality_rating": 4.6
+  },
+  {
+    "name": "Portugal Premium Textiles",
+    "category": "apparel",
+    "materials": ["cotton", "organic cotton", "fleece"],
+    "min_order_qty": 100,
+    "max_order_qty": 5000,
+    "unit_price": 13.0,
+    "lead_time_days": 18,
+    "country": "Portugal",
+    "quality_rating": 4.8
+  },
+  {
+    "name": "Pakistan Knit Works",
+    "category": "apparel",
+    "materials": ["cotton", "jersey", "fleece"],
+    "min_order_qty": 300,
+    "max_order_qty": 15000,
+    "unit_price": 8.0,
+    "lead_time_days": 24,
+    "country": "Pakistan",
+    "quality_rating": 4.3
+  },
+  {
+    "name": "Mexico Fast Stitch",
+    "category": "apparel",
+    "materials": ["cotton", "polyester"],
+    "min_order_qty": 150,
+    "max_order_qty": 7000,
+    "unit_price": 10.5,
+    "lead_time_days": 14,
+    "country": "Mexico",
+    "quality_rating": 4.4
+  },
+  {
+    "name": "China Bulk Manufacturing",
+    "category": "apparel",
+    "materials": ["cotton", "polyester", "nylon", "fleece"],
+    "min_order_qty": 500,
+    "max_order_qty": 50000,
+    "unit_price": 7.5,
+    "lead_time_days": 28,
+    "country": "China",
+    "quality_rating": 4.2
+  },
+  {
+    "name": "Bangladesh Garment Hub",
+    "category": "apparel",
+    "materials": ["cotton", "fleece", "jersey"],
+    "min_order_qty": 400,
+    "max_order_qty": 25000,
+    "unit_price": 7.8,
+    "lead_time_days": 26,
+    "country": "Bangladesh",
+    "quality_rating": 4.1
+  },
+  {
+    "name": "India Urban Threads",
+    "category": "apparel",
+    "materials": ["cotton", "organic cotton", "linen", "fleece"],
+    "min_order_qty": 120,
+    "max_order_qty": 8000,
+    "unit_price": 9.0,
+    "lead_time_days": 19,
+    "country": "India",
+    "quality_rating": 4.5
+  },
+  {
+    "name": "Turkey Textile Collective",
+    "category": "apparel",
+    "materials": ["cotton", "polyester", "jersey", "organic cotton"],
+    "min_order_qty": 180,
+    "max_order_qty": 9000,
+    "unit_price": 11.0,
+    "lead_time_days": 16,
+    "country": "Turkey",
+    "quality_rating": 4.6
+  },
+  {
+    "name": "Peru Knit Studio",
+    "category": "apparel",
+    "materials": ["cotton", "pima cotton", "fleece"],
+    "min_order_qty": 80,
+    "max_order_qty": 3500,
+    "unit_price": 12.5,
+    "lead_time_days": 17,
+    "country": "Peru",
+    "quality_rating": 4.7
+  },
+  {
+    "name": "Indonesia Activewear Mills",
+    "category": "apparel",
+    "materials": ["cotton", "polyester", "spandex", "fleece"],
+    "min_order_qty": 250,
+    "max_order_qty": 12000,
+    "unit_price": 9.8,
+    "lead_time_days": 21,
+    "country": "Indonesia",
+    "quality_rating": 4.4
+  }
+]
