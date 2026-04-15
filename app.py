@@ -4,7 +4,11 @@ from typing import Any, Dict, List
 
 import pandas as pd
 import streamlit as st
-from openai import OpenAI
+
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 st.set_page_config(page_title="SpranAI", page_icon="✨", layout="wide")
 
@@ -185,8 +189,16 @@ def load_suppliers() -> List[Dict[str, Any]]:
 
 
 def get_openai_api_key() -> str:
-    if "OPENAI_API_KEY" in st.secrets:
-        return st.secrets["OPENAI_API_KEY"]
+    """
+    Safely fetch the OpenAI API key without crashing if secrets.toml is missing.
+    """
+    try:
+        api_key = st.secrets.get("OPENAI_API_KEY")
+        if api_key:
+            return api_key
+    except Exception:
+        pass
+
     return os.getenv("OPENAI_API_KEY", "")
 
 
@@ -254,7 +266,7 @@ def ai_generate_spec(
 ) -> Dict[str, Any]:
     api_key = get_openai_api_key()
 
-    if not api_key:
+    if not api_key or OpenAI is None:
         return rule_based_spec(
             product_name=product_name,
             category=category,
@@ -523,6 +535,8 @@ with st.form("product_form"):
     submitted = st.form_submit_button("Find manufacturers")
 
 if submitted:
+    st.markdown('<div class="section-title">✨ AI Generated Product Spec</div>', unsafe_allow_html=True)
+
     with st.spinner("Generating AI-powered sourcing brief..."):
         spec = ai_generate_spec(
             product_name=product_name,
@@ -537,12 +551,15 @@ if submitted:
     filtered = filter_suppliers(spec, suppliers)
     ranked = enrich_and_rank(spec, filtered)
 
-    st.success("Sourcing request processed successfully.")
-
     if get_openai_api_key():
+        st.success("AI spec generated successfully.")
         st.caption("AI extraction enabled: sourcing brief generated with an LLM.")
     else:
+        st.success("Sourcing request processed successfully.")
         st.caption("AI extraction unavailable: using rule-based fallback.")
+
+    with st.expander("View generated spec", expanded=True):
+        st.json(spec)
 
     st.markdown('<div class="section-title">Structured sourcing brief</div>', unsafe_allow_html=True)
 
